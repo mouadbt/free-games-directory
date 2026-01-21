@@ -1,26 +1,23 @@
-// Fetch the api edpoint and get the data
-export const fetchApi = async (endpoint) => {
-    try {
-        const res = await fetch(endpoint);
-        if (!res.ok) throw new Error(`Failed to fetch ${endpoint}: ${res}`);
-        return await res.json();
-    } catch (err) {
-        console.error(err);
-        return null;
-    }
+export const fetchData = async (endpoint) => {
+    const res = await fetch(endpoint);
+    if (!res.ok) throw new Error(`Fetch failed: ${endpoint}`);
+    return res.json();
 };
 
-// Get the defaults data from the localstorage or the default
-export const loadData = async (apiObj) => {
-    const raw = localStorage.getItem(apiObj.key);
-    try {
-        return raw && JSON.parse(raw);
-    } catch {
-        return await fetchApi(apiObj.endpoint);
-    }
+export const loadData = (key) => {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : null;
 };
 
-// Store updated data in localstorage
 export const saveData = (key, value) => {
     localStorage.setItem(key, JSON.stringify(value));
+};
+
+export const loadOrFetch = async ({ key, endpoint }) => {
+    const cached = loadData(key);
+    if (cached) return cached;
+
+    const fresh = await fetchData(endpoint);
+    saveData(key, fresh);
+    return fresh;
 };
