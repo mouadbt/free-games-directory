@@ -14,10 +14,15 @@ export const saveData = (key, value) => {
 };
 
 export const loadOrFetch = async ({ key, endpoint }) => {
-    const cached = loadData(key);
-    if (cached) return cached;
+    const cachedData = loadData(key);
+    const now = Date.now();
+    const ONE_DAY = 24 * 60 * 60 * 1000;
 
-    const fresh = await fetchData(endpoint);
-    saveData(key, fresh);
-    return fresh;
+    if (cachedData && (now - (cachedData.updated_at || 0) < ONE_DAY)) {
+        return cachedData.data;
+    }
+
+    const freshData = await fetchData(endpoint);
+    saveData(key, { data: freshData, updated_at: now });
+    return freshData;
 };
